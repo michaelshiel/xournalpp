@@ -18,7 +18,6 @@
 #include <glib.h>     // for gboolean
 #include <gtk/gtk.h>  // for GtkWidget, GtkWindow
 
-#include "audio/DeviceInfo.h"                    // for DeviceInfo
 #include "control/tools/StrokeStabilizerEnum.h"  // for AveragingMethod, Pre...
 #include "gui/GladeGui.h"                        // for GladeGui
 
@@ -84,8 +83,6 @@ private:
     Control* control = nullptr;
     GtkWidget* callib = nullptr;
     int dpi = 72;
-    std::vector<DeviceInfo> audioInputDevices;
-    std::vector<DeviceInfo> audioOutputDevices;
 
     std::unique_ptr<LanguageConfigGui> languageConfig;
     std::vector<ButtonConfigGui*> buttonConfigs;

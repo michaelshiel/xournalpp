@@ -7,7 +7,6 @@
 #include <gdk/gdk.h>      // for GdkRGBA, GdkRectangle
 #include <glib-object.h>  // for G_CALLBACK, g_signal...
 
-#include "control/AudioController.h"             // for AudioController
 #include "control/Control.h"                     // for Control
 #include "control/DeviceListHelper.h"            // for getDeviceList, Input...
 #include "control/settings/Settings.h"           // for Settings, SElement
@@ -406,9 +405,6 @@ void SettingsDialog::load() {
     string txt = settings->getDefaultSaveName();
     gtk_entry_set_text(GTK_ENTRY(txtDefaultSaveName), txt.c_str());
 
-    gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(get("fcAudioPath")),
-                                        Util::toGFilename(settings->getAudioFolder()).c_str());
-
     GtkWidget* spAutosaveTimeout = get("spAutosaveTimeout");
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(spAutosaveTimeout), settings->getAutosaveTimeout());
 
@@ -597,50 +593,6 @@ void SettingsDialog::load() {
     int timeoutMs = 1000;
     touch.getInt("timeout", timeoutMs);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(get("spTouchDisableTimeout")), timeoutMs / 1000.0);
-
-    this->audioInputDevices = this->control->getAudioController()->getInputDevices();
-    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(get("cbAudioInputDevice")), "", "System default");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioInputDevice")), 0);
-    for (auto& audioInputDevice: this->audioInputDevices) {
-        gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(get("cbAudioInputDevice")), "",
-                                  audioInputDevice.getDeviceName().c_str());
-    }
-    for (size_t i = 0; i < this->audioInputDevices.size(); i++) {
-        if (this->audioInputDevices[i].getSelected()) {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioInputDevice")), i + 1);
-        }
-    }
-
-    this->audioOutputDevices = this->control->getAudioController()->getOutputDevices();
-    gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(get("cbAudioOutputDevice")), "", "System default");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioOutputDevice")), 0);
-    for (auto& audioOutputDevice: this->audioOutputDevices) {
-        gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(get("cbAudioOutputDevice")), "",
-                                  audioOutputDevice.getDeviceName().c_str());
-    }
-    for (size_t i = 0; i < this->audioOutputDevices.size(); i++) {
-        if (this->audioOutputDevices[i].getSelected()) {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioOutputDevice")), i + 1);
-        }
-    }
-
-    switch (static_cast<int>(settings->getAudioSampleRate())) {
-        case 16000:
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioSampleRate")), 0);
-            break;
-        case 96000:
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioSampleRate")), 2);
-            break;
-        case 192000:
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioSampleRate")), 3);
-            break;
-        case 44100:
-        default:
-            gtk_combo_box_set_active(GTK_COMBO_BOX(get("cbAudioSampleRate")), 1);
-            break;
-    }
-
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(get("spAudioGain")), settings->getAudioGain());
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(get("spDefaultSeekTime")), settings->getDefaultSeekTime());
 
     this->latexPanel.load(settings->latexSettings);
@@ -811,12 +763,6 @@ void SettingsDialog::save() {
 
     settings->setDefaultSaveName(gtk_entry_get_text(GTK_ENTRY(get("txtDefaultSaveName"))));
     // Todo(fabian): use Util::fromGFilename!
-    auto file = gtk_file_chooser_get_file(GTK_FILE_CHOOSER(get("fcAudioPath")));
-    auto path = Util::fromGFile(file);
-    g_object_unref(file);
-    if (fs::is_directory(path)) {
-        settings->setAudioFolder(path);
-    }
 
     GtkWidget* spAutosaveTimeout = get("spAutosaveTimeout");
     int autosaveTimeout = gtk_spin_button_get_value(GTK_SPIN_BUTTON(spAutosaveTimeout));
@@ -908,38 +854,6 @@ void SettingsDialog::save() {
             static_cast<double>(gtk_spin_button_get_value(GTK_SPIN_BUTTON(get("spSnapGridTolerance")))));
     settings->setSnapGridSize(
             static_cast<double>(gtk_spin_button_get_value(GTK_SPIN_BUTTON(get("spSnapGridSize"))) * DEFAULT_GRID_SIZE));
-
-    int selectedInputDeviceIndex = gtk_combo_box_get_active(GTK_COMBO_BOX(get("cbAudioInputDevice"))) - 1;
-    if (selectedInputDeviceIndex >= 0 && selectedInputDeviceIndex < static_cast<int>(this->audioInputDevices.size())) {
-        settings->setAudioInputDevice(static_cast<int>(this->audioInputDevices[selectedInputDeviceIndex].getIndex()));
-    }
-
-    int selectedOutputDeviceIndex = gtk_combo_box_get_active(GTK_COMBO_BOX(get("cbAudioOutputDevice"))) - 1;
-    if (selectedOutputDeviceIndex >= 0 &&
-        selectedOutputDeviceIndex < static_cast<int>(this->audioOutputDevices.size())) {
-        settings->setAudioOutputDevice(
-                static_cast<int>(this->audioOutputDevices[selectedOutputDeviceIndex].getIndex()));
-    }
-
-    switch (gtk_combo_box_get_active(GTK_COMBO_BOX(get("cbAudioSampleRate")))) {
-        case 0:
-            settings->setAudioSampleRate(16000.0);
-            break;
-        case 2:
-            settings->setAudioSampleRate(96000.0);
-            break;
-        case 3:
-            settings->setAudioSampleRate(192000.0);
-            break;
-        case 1:
-        default:
-            settings->setAudioSampleRate(44100.0);
-            break;
-    }
-
-    settings->setAudioGain(static_cast<double>(gtk_spin_button_get_value(GTK_SPIN_BUTTON(get("spAudioGain")))));
-    settings->setDefaultSeekTime(
-            static_cast<double>(gtk_spin_button_get_value(GTK_SPIN_BUTTON(get("spDefaultSeekTime")))));
 
     for (DeviceClassConfigGui* deviceClassConfigGui: this->deviceClassConfigs) { deviceClassConfigGui->saveSettings(); }
 

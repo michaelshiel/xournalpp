@@ -180,10 +180,6 @@ void Settings::loadDefault() {
 	this->pageTemplate = "xoj/template\ncopyLastPageSettings=true\nsize=595.275591x841.889764\nbackgroundType=lined\nbackgroundColor=#ffffff\n";
     // clang-format on
 
-    this->audioSampleRate = 44100.0;
-    this->audioInputDevice = -1;
-    this->audioOutputDevice = -1;
-    this->audioGain = 1.0;
     this->defaultSeekTime = 5;
 
     this->pluginEnabled = "";
@@ -438,8 +434,6 @@ void Settings::parseItem(xmlDocPtr doc, xmlNodePtr cur) {
         this->pageTemplate = reinterpret_cast<const char*>(value);
     } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("sizeUnit")) == 0) {
         this->sizeUnit = reinterpret_cast<const char*>(value);
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("audioFolder")) == 0) {
-        this->audioFolder = fs::u8path(reinterpret_cast<const char*>(value));
     } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("autosaveEnabled")) == 0) {
         this->autosaveEnabled = xmlStrcmp(value, reinterpret_cast<const xmlChar*>("true")) == 0;
     } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("autosaveTimeout")) == 0) {
@@ -506,16 +500,6 @@ void Settings::parseItem(xmlDocPtr doc, xmlNodePtr cur) {
         }
     } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("disableScrollbarFadeout")) == 0) {
         this->disableScrollbarFadeout = xmlStrcmp(value, reinterpret_cast<const xmlChar*>("true")) == 0;
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("audioSampleRate")) == 0) {
-        this->audioSampleRate = tempg_ascii_strtod(reinterpret_cast<const char*>(value), nullptr);
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("audioGain")) == 0) {
-        this->audioGain = tempg_ascii_strtod(reinterpret_cast<const char*>(value), nullptr);
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("defaultSeekTime")) == 0) {
-        this->defaultSeekTime = tempg_ascii_strtod(reinterpret_cast<const char*>(value), nullptr);
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("audioInputDevice")) == 0) {
-        this->audioInputDevice = g_ascii_strtoll(reinterpret_cast<const char*>(value), nullptr, 10);
-    } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("audioOutputDevice")) == 0) {
-        this->audioOutputDevice = g_ascii_strtoll(reinterpret_cast<const char*>(value), nullptr, 10);
     } else if (xmlStrcmp(name, reinterpret_cast<const xmlChar*>("numIgnoredStylusEvents")) == 0) {
         this->numIgnoredStylusEvents =
                 std::max<int>(g_ascii_strtoll(reinterpret_cast<const char*>(value), nullptr, 10), 0);
@@ -973,15 +957,6 @@ void Settings::save() {
     SAVE_STRING_PROP(pageTemplate);
     ATTACH_COMMENT("Config for new pages");
 
-    SAVE_STRING_PROP(sizeUnit);
-    {
-        auto audioFolder = this->audioFolder.u8string();
-        SAVE_STRING_PROP(audioFolder);
-    }
-    SAVE_INT_PROP(audioInputDevice);
-    SAVE_INT_PROP(audioOutputDevice);
-    SAVE_DOUBLE_PROP(audioSampleRate);
-    SAVE_DOUBLE_PROP(audioGain);
     SAVE_INT_PROP(defaultSeekTime);
 
     SAVE_STRING_PROP(pluginEnabled);
@@ -1466,18 +1441,6 @@ void Settings::setPageTemplate(const string& pageTemplate) {
     save();
 }
 
-auto Settings::getAudioFolder() const -> fs::path const& { return this->audioFolder; }
-
-void Settings::setAudioFolder(fs::path audioFolder) {
-    if (this->audioFolder == audioFolder) {
-        return;
-    }
-
-    this->audioFolder = std::move(audioFolder);
-
-    save();
-}
-
 auto Settings::getSizeUnit() const -> string const& { return sizeUnit; }
 
 void Settings::setSizeUnit(const string& sizeUnit) {
@@ -1897,47 +1860,6 @@ auto Settings::getFont() -> XojFont& { return this->font; }
 
 void Settings::setFont(const XojFont& font) {
     this->font = font;
-    save();
-}
-
-
-auto Settings::getAudioInputDevice() const -> PaDeviceIndex { return this->audioInputDevice; }
-
-void Settings::setAudioInputDevice(PaDeviceIndex deviceIndex) {
-    if (this->audioInputDevice == deviceIndex) {
-        return;
-    }
-    this->audioInputDevice = deviceIndex;
-    save();
-}
-
-auto Settings::getAudioOutputDevice() const -> PaDeviceIndex { return this->audioOutputDevice; }
-
-void Settings::setAudioOutputDevice(PaDeviceIndex deviceIndex) {
-    if (this->audioOutputDevice == deviceIndex) {
-        return;
-    }
-    this->audioOutputDevice = deviceIndex;
-    save();
-}
-
-auto Settings::getAudioSampleRate() const -> double { return this->audioSampleRate; }
-
-void Settings::setAudioSampleRate(double sampleRate) {
-    if (this->audioSampleRate == sampleRate) {
-        return;
-    }
-    this->audioSampleRate = sampleRate;
-    save();
-}
-
-auto Settings::getAudioGain() const -> double { return this->audioGain; }
-
-void Settings::setAudioGain(double gain) {
-    if (this->audioGain == gain) {
-        return;
-    }
-    this->audioGain = gain;
     save();
 }
 

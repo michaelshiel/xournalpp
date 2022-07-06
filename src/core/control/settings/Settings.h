@@ -21,7 +21,6 @@
 #include <gdk/gdk.h>                      // for GdkInputSource, GdkD...
 #include <glib.h>                         // for gchar, gboolean, gint
 #include <libxml/tree.h>                  // for xmlNodePtr, xmlDocPtr
-#include <portaudiocpp/PortAudioCpp.hxx>  // for PaDeviceIndex
 
 #include "control/tools/StrokeStabilizerEnum.h"  // for AveragingMethod, Pre...
 #include "model/Font.h"                          // for XojFont
@@ -366,21 +365,6 @@ public:
 
     std::string const& getPageTemplate() const;
     void setPageTemplate(const std::string& pageTemplate);
-
-    fs::path const& getAudioFolder() const;
-    void setAudioFolder(fs::path audioFolder);
-
-    PaDeviceIndex getAudioInputDevice() const;
-    void setAudioInputDevice(PaDeviceIndex deviceIndex);
-
-    PaDeviceIndex getAudioOutputDevice() const;
-    void setAudioOutputDevice(PaDeviceIndex deviceIndex);
-
-    double getAudioSampleRate() const;
-    void setAudioSampleRate(double sampleRate);
-
-    double getAudioGain() const;
-    void setAudioGain(double gain);
 
     unsigned int getDefaultSeekTime() const;
     void setDefaultSeekTime(unsigned int t);
@@ -906,11 +890,6 @@ private:
     std::string sizeUnit;
 
     /**
-     * Audio folder for audio recording
-     */
-    fs::path audioFolder;
-
-    /**
      * Snap tolerance for the graph/dotted grid
      */
     double snapGridTolerance{};
@@ -935,26 +914,6 @@ private:
      * is unavailable (e.g. drawing with a mouse).
      */
     bool pressureGuessing{};
-
-    /**
-     * The index of the audio device used for recording
-     */
-    PaDeviceIndex audioInputDevice{};
-
-    /**
-     * The index of the audio device used for playback
-     */
-    PaDeviceIndex audioOutputDevice{};
-
-    /**
-     * The sample rate used for recording
-     */
-    double audioSampleRate{};
-
-    /**
-     * The gain by which to amplify the recorded audio samples
-     */
-    double audioGain{};
 
     /**
      * The default time by which the playback will seek backwards and forwards

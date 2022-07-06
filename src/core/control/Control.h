@@ -36,7 +36,6 @@
 #include "ToolHandler.h"       // for ToolListener
 #include "filesystem.h"        // for path
 
-class AudioController;
 class FullscreenHandler;
 class Sidebar;
 class GladeSearchpath;
@@ -258,7 +257,6 @@ public:
     XournalppCursor* getCursor();
     Sidebar* getSidebar();
     SearchBar* getSearchBar();
-    AudioController* getAudioController();
     PageTypeHandler* getPageTypes();
     PageTypeMenu* getNewPageType();
     PageBackgroundChangeController* getPageBackgroundChangeController();
@@ -370,8 +368,6 @@ private:
     bool lastEnabled;
 
     ScrollHandler* scrollHandler;
-
-    AudioController* audioController;
 
     ToolbarDragDropHandler* dragDropHandler = nullptr;
 

@@ -9,9 +9,6 @@
 #include <optional>   // for opti...
 #include <utility>    // for move
 
-#include "audio/AudioPlayer.h"                                   // for AudioPlayer
-#include "audio/AudioRecorder.h"                                 // for AudioRecorder
-#include "control/AudioController.h"                             // for Audi...
 #include "control/ClipboardHandler.h"                            // for Clip...
 #include "control/RecentManager.h"                               // for Rece...
 #include "control/ScrollHandler.h"                               // for Scro...
@@ -124,8 +121,6 @@ Control::Control(GApplication* gtkApp, GladeSearchpath* gladeSearchPath): gtkApp
     this->pageTypes = new PageTypeHandler(gladeSearchPath);
     this->newPageType = std::make_unique<PageTypeMenu>(this->pageTypes, settings, true, true);
 
-    this->audioController = new AudioController(this->settings, this);
-
     this->scrollHandler = new ScrollHandler(this);
 
     this->scheduler = new XournalScheduler();
@@ -200,8 +195,6 @@ Control::~Control() {
     this->scheduler = nullptr;
     delete this->dragDropHandler;
     this->dragDropHandler = nullptr;
-    delete this->audioController;
-    this->audioController = nullptr;
     delete this->pageBackgroundChangeController;
     this->pageBackgroundChangeController = nullptr;
     delete this->layerController;
@@ -950,46 +943,6 @@ void Control::actionPerformed(ActionType type, ActionGroup group, GdkEvent* even
 
         case ACTION_SET_LAYOUT_B2T:
             setViewLayoutB2T(true);
-            break;
-
-
-        case ACTION_AUDIO_RECORD: {
-            bool result = false;
-            if (enabled) {
-                result = audioController->startRecording();
-            } else {
-                result = audioController->stopRecording();
-            }
-
-            if (!result) {
-                Util::execInUiThread([=]() {
-                    gtk_toggle_tool_button_set_active(reinterpret_cast<GtkToggleToolButton*>(toolbutton), !enabled);
-                    string msg = _("Recorder could not be started.");
-                    g_warning("%s", msg.c_str());
-                    XojMsgBox::showErrorToUser(Control::getGtkWindow(), msg);
-                });
-            }
-            break;
-        }
-
-        case ACTION_AUDIO_PAUSE_PLAYBACK:
-            if (enabled) {
-                this->getAudioController()->pausePlayback();
-            } else {
-                this->getAudioController()->continuePlayback();
-            }
-            break;
-
-        case ACTION_AUDIO_SEEK_FORWARDS:
-            this->getAudioController()->seekForwards();
-            break;
-
-        case ACTION_AUDIO_SEEK_BACKWARDS:
-            this->getAudioController()->seekBackwards();
-            break;
-
-        case ACTION_AUDIO_STOP_PLAYBACK:
-            this->getAudioController()->stopPlayback();
             break;
 
         case ACTION_ROTATION_SNAPPING:
@@ -2582,7 +2535,6 @@ void Control::quit(bool allowCancel) {
         return;
     }
 
-    audioController->stopRecording();
     this->scheduler->lock();
     this->scheduler->removeAllJobs();
     this->scheduler->unlock();
@@ -3017,8 +2969,6 @@ auto Control::getMetadataManager() -> MetadataManager* { return this->metadata; 
 auto Control::getSidebar() -> Sidebar* { return this->sidebar; }
 
 auto Control::getSearchBar() -> SearchBar* { return this->searchBar; }
-
-auto Control::getAudioController() -> AudioController* { return this->audioController; }
 
 auto Control::getPageTypes() -> PageTypeHandler* { return this->pageTypes; }
 

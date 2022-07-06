@@ -16,7 +16,6 @@
 #include <limits>
 #include <optional>
 
-#include "control/AudioController.h"
 #include "control/tools/EditSelection.h"
 #include "util/PathUtil.h"
 
@@ -145,23 +144,7 @@ protected:
             return false;
         }
 
-        AudioElement* s = (AudioElement*)e;
         double tmpGap = 0;
-        if ((s->intersects(x, y, 15, &tmpGap))) {
-            size_t ts = s->getTimestamp();
-
-            if (auto fn = s->getAudioFilename(); !fn.empty()) {
-                if (!fn.has_parent_path() || fs::weakly_canonical(fn.parent_path()) == "/") {
-                    auto const& path = view->settings->getAudioFolder();
-                    // Assume path exists
-                    fn = path / fn;
-                }
-                auto* ac = view->getXournal()->getControl()->getAudioController();
-                bool success = ac->startPlayback(fn, (unsigned int)ts);
-                playbackStatus = {success, std::move(fn)};
-                return success;
-            }
-        }
         return false;
     }
 };

@@ -12,7 +12,6 @@
 #include <glib.h>            // for gint, g_get_curre...
 #include <gtk/gtk.h>         // for gtk_widget_get_to...
 
-#include "control/AudioController.h"                // for AudioController
 #include "control/Control.h"                        // for Control
 #include "control/SearchControl.h"                  // for SearchControl
 #include "control/ToolEnums.h"                      // for DRAWING_TYPE_SPLINE
@@ -235,14 +234,6 @@ void XojPageView::startText(double x, double y) {
             text->setFont(settings->getFont());
             text->setX(x);
             text->setY(y - text->getElementHeight() / 2);
-
-            if (xournal->getControl()->getAudioController()->isRecording()) {
-                fs::path audioFilename = xournal->getControl()->getAudioController()->getAudioFilename();
-                size_t sttime = xournal->getControl()->getAudioController()->getStartTime();
-                size_t milliseconds = ((g_get_monotonic_time() / 1000) - sttime);
-                text->setTimestamp(milliseconds);
-                text->setAudioFilename(audioFilename);
-            }
         } else {
 
             // We can try to add an undo action here. The initial text shows up in this
@@ -259,7 +250,6 @@ void XojPageView::startText(double x, double y) {
             this->xournal->getControl()->getWindow()->setFontButtonFont(oldtext->getFont());
             text->setText(oldtext->getText());
             text->setTimestamp(oldtext->getTimestamp());
-            text->setAudioFilename(oldtext->getAudioFilename());
 
             Layer* layer = this->page->getSelectedLayer();
             layer->removeElement(this->oldtext, false);

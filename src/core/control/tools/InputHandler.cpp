@@ -5,7 +5,6 @@
 
 #include <glib.h>  // for g_get_monotonic_time
 
-#include "control/AudioController.h"  // for AudioController
 #include "control/Control.h"          // for Control
 #include "control/ToolEnums.h"        // for TOOL_ERASER, TOOL_HIGHLIGHTER
 #include "control/ToolHandler.h"      // for ToolHandler
@@ -37,14 +36,6 @@ void InputHandler::createStroke(Point p) {
 
     if (h->getToolType() == TOOL_PEN) {
         stroke->setToolType(STROKE_TOOL_PEN);
-
-        if (xournal->getControl()->getAudioController()->isRecording()) {
-            fs::path audioFilename = xournal->getControl()->getAudioController()->getAudioFilename();
-            size_t sttime = xournal->getControl()->getAudioController()->getStartTime();
-            size_t milliseconds = ((g_get_monotonic_time() / 1000) - sttime);
-            stroke->setTimestamp(milliseconds);
-            stroke->setAudioFilename(audioFilename);
-        }
     } else if (h->getToolType() == TOOL_HIGHLIGHTER) {
         stroke->setToolType(STROKE_TOOL_HIGHLIGHTER);
         p.z = Point::NO_PRESSURE;

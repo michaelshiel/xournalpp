@@ -7,7 +7,6 @@
 #include <gio/gio.h>                // for g_cancellable_is_...
 #include <gtk/gtkcssprovider.h>     // for gtk_css_provider_...
 
-#include "control/AudioController.h"                // for AudioController
 #include "control/Control.h"                        // for Control
 #include "control/DeviceListHelper.h"               // for getSourceMapping
 #include "control/ScrollHandler.h"                  // for ScrollHandler
@@ -687,10 +686,6 @@ void MainWindow::createToolbarAndMenu() {
         toolbarSelected(td);
     }
 
-    if (!this->control->getAudioController()->isPlaying()) {
-        this->getToolMenuHandler()->disableAudioPlaybackButtons();
-    }
-
     this->control->getScheduler()->unblockRerenderZoom();
 }
 
@@ -756,9 +751,6 @@ auto MainWindow::getToolbarModel() -> ToolbarModel* { return this->toolbar->getM
 auto MainWindow::getToolMenuHandler() -> ToolMenuHandler* { return this->toolbar; }
 
 void MainWindow::disableAudioPlaybackButtons() {
-    setAudioPlaybackPaused(false);
-
-    this->getToolMenuHandler()->disableAudioPlaybackButtons();
 }
 
 void MainWindow::enableAudioPlaybackButtons() { this->getToolMenuHandler()->enableAudioPlaybackButtons(); }
